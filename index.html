@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AWS Cloud Practitioner — Exam Simulator</title>
+<meta name="description" content="A self-contained mock exam trainer for the AWS Certified Cloud Practitioner (CLF-C02) exam.">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- ==================================================================
+       HOME / MODE SELECT
+       ================================================================== -->
+  <section id="screen-home" class="screen active">
+    <header class="hero">
+      <div class="eyebrow">CLF-C02 · Practice Bank</div>
+      <div class="hero-top">
+        <h1>AWS Cloud Practitioner<br>Exam Simulator</h1>
+        <button class="btn btn-ghost" id="btnOpenNotes">📘 Study notes &amp; memory hooks</button>
+      </div>
+      <p class="lede">Drill the same material three ways — race the clock, get corrected in real time, or sit a full-length practice exam scored the way AWS scores it.</p>
+      <div class="stats">
+        <div class="stat"><b id="bankCount">0</b><span>Questions in bank</span></div>
+        <div class="stat"><b>70%</b><span>Passing score</span></div>
+        <div class="stat"><b>3</b><span>Study modes</span></div>
+      </div>
+    </header>
+
+    <div class="modes">
+      <button class="mode-card" data-mode="timed" tabindex="0">
+        <div class="tag">Timed</div>
+        <h3>Timed Quiz</h3>
+        <p>Pick a question count and a clock. A running score check with no hand-holding.</p>
+        <div class="go">Configure below ↓</div>
+      </button>
+      <button class="mode-card" data-mode="feedback" tabindex="0">
+        <div class="tag">Practice</div>
+        <h3>Instant Feedback</h3>
+        <p>Answer one question at a time and see immediately whether you nailed it, with the explanation.</p>
+        <div class="go">Configure below ↓</div>
+      </button>
+      <button class="mode-card" data-mode="exam" tabindex="0">
+        <div class="tag">Exam</div>
+        <h3>Full Exam Simulation</h3>
+        <p>65 questions, 90 minutes, 70% to pass — the same shape as exam day.</p>
+        <div class="go">Configure below ↓</div>
+      </button>
+    </div>
+
+    <!-- Timed config -->
+    <div class="config" id="config-timed">
+      <h3>Timed Quiz settings</h3>
+      <div class="sub">Choose how many questions and how much time you get.</div>
+      <div class="field-row">
+        <div class="field">
+          <label>Questions</label>
+          <div class="seg" data-mode="timed" data-field="count">
+            <button data-value="10">10</button>
+            <button data-value="20" class="active">20</button>
+            <button data-value="30">30</button>
+            <button data-value="all">All</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>Time limit</label>
+          <div class="seg" data-mode="timed" data-field="minutes">
+            <button data-value="10">10 min</button>
+            <button data-value="20" class="active">20 min</button>
+            <button data-value="30">30 min</button>
+            <button data-value="45">45 min</button>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-primary" id="start-timed">Start timed quiz</button>
+    </div>
+
+    <!-- Feedback config -->
+    <div class="config" id="config-feedback">
+      <h3>Instant Feedback settings</h3>
+      <div class="sub">No clock — go at your own pace. Every answer is explained right away.</div>
+      <div class="field-row">
+        <div class="field">
+          <label>Questions</label>
+          <div class="seg" data-mode="feedback" data-field="count">
+            <button data-value="10">10</button>
+            <button data-value="15" class="active">15</button>
+            <button data-value="25">25</button>
+            <button data-value="all">All</button>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-primary" id="start-feedback">Start practice session</button>
+    </div>
+
+    <!-- Exam config -->
+    <div class="config" id="config-exam">
+      <h3>Full Exam Simulation</h3>
+      <div class="sub">65 questions in 90 minutes, scored pass/fail at a 70% bar — matching the real CLF-C02 format.</div>
+      <button class="btn btn-primary" id="start-exam">Begin exam</button>
+    </div>
+
+    <p class="center-note">Built from a self-authored CLF-C02 study bank · runs entirely in your browser, nothing leaves this page</p>
+  </section>
+
+  <!-- ==================================================================
+       QUIZ
+       ================================================================== -->
+  <section id="screen-quiz" class="screen">
+    <div class="quiz-bar">
+      <div class="progress-wrap">
+        <div class="progress-label">
+          <span id="quizModeLabel">Quiz</span>
+          <span>Question <b id="progressLabel-current">1</b> / <span id="progressLabel-total">10</span></span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+      </div>
+      <div id="quiz-timer-wrap" class="timer" >⏱ <span id="timerDisplay">00:00</span></div>
+      <button class="btn btn-ghost" id="btnQuit">Quit</button>
+    </div>
+
+    <div class="q-card">
+      <div class="q-meta"><span class="chip" id="qChip">Choose 1</span></div>
+      <div class="q-text" id="qText"></div>
+      <div class="choices" id="choicesWrap"></div>
+      <div class="feedback-box" id="feedbackBox"></div>
+
+      <div class="q-actions">
+        <button class="btn btn-ghost" id="btnPrev">← Previous</button>
+        <div class="right">
+          <button class="btn btn-primary" id="btnSubmitAnswer">Check answer</button>
+          <button class="btn btn-primary hidden" id="btnNext">Next →</button>
+          <button class="btn btn-primary hidden" id="btnFinish">Finish &amp; see results</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="quiz-nav-wrap">
+      <div class="q-nav" id="quizNav"></div>
+    </div>
+  </section>
+
+  <!-- ==================================================================
+       RESULTS
+       ================================================================== -->
+  <section id="screen-results" class="screen">
+    <div class="eyebrow" id="resultModeLabel">Results</div>
+
+    <div class="result-hero">
+      <div class="gauge-wrap">
+        <svg viewBox="0 0 160 160">
+          <circle class="gauge-track" cx="80" cy="80" r="70"></circle>
+          <circle class="gauge-fill" id="gaugeFill" cx="80" cy="80" r="70"></circle>
+        </svg>
+        <div class="gauge-center">
+          <b id="scoreBig">0%</b>
+          <span>Score</span>
+        </div>
+      </div>
+      <div class="result-info">
+        <span class="pass-pill" id="passPill">—</span>
+        <h2 id="resultSummary">Loading…</h2>
+        <div class="result-metrics">
+          <div><b id="metricCorrect">0/0</b><span>Correct</span></div>
+          <div><b id="metricElapsed">00:00</b><span>Time taken</span></div>
+          <div><b>70%</b><span>Passing bar</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="review-controls">
+      <h3>Question review</h3>
+      <div class="filter-seg">
+        <button class="active" data-filter="all">All</button>
+        <button data-filter="incorrect">Missed</button>
+        <button data-filter="correct">Correct</button>
+      </div>
+    </div>
+    <div id="reviewList"></div>
+
+    <div class="footer-actions">
+      <button class="btn btn-primary" id="btnRetake">Retake this mode</button>
+      <button class="btn btn-ghost" id="btnHome">Back to home</button>
+    </div>
+  </section>
+  <!-- ==================================================================
+       STUDY NOTES / MEMORY HOOKS
+       ================================================================== -->
+  <section id="screen-notes" class="screen">
+    <div class="eyebrow">Quick reference</div>
+    <h1 class="notes-h1">AWS Fundamentals — Study Notes &amp; Memory Hooks</h1>
+    <p class="lede notes-lede">A five-minute refresher on the concepts the quiz draws on. Not official AWS material — just the shorthand that tends to stick.</p>
+
+    <div class="notes-grid">
+
+      <div class="note-card">
+        <h3>What AWS actually is</h3>
+        <p>Amazon Web Services is Amazon's cloud platform: on-demand compute, storage, databases, and networking, billed for what you use rather than sold as pre-bought hardware.</p>
+        <div class="hook"><b>Memory hook:</b> "rent, don't buy" — no data center, no upfront hardware spend, scale up or down as demand changes.</div>
+      </div>
+
+      <div class="note-card wide">
+        <h3>The core value pitch — why companies use it</h3>
+        <table class="mini-table">
+          <thead><tr><th>Benefit</th><th>What it means</th><th>Exam angle</th></tr></thead>
+          <tbody>
+            <tr><td>Pay-as-you-go</td><td>No upfront capital cost</td><td>"Trade CAPEX for OPEX"</td></tr>
+            <tr><td>Elastic</td><td>Scale resources up/down on demand</td><td>Auto Scaling questions</td></tr>
+            <tr><td>Secure</td><td>Built-in security tooling + shared responsibility</td><td>IAM / Shield / GuardDuty questions</td></tr>
+            <tr><td>Reliable</td><td>High availability, fault tolerance across facilities</td><td>Multi-AZ, failover questions</td></tr>
+            <tr><td>Global</td><td>Infrastructure spans the planet</td><td>"Go global in minutes"</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="note-card wide">
+        <h3>Global infrastructure — three terms that get mixed up</h3>
+        <ul class="note-list">
+          <li><b>Region</b> — a geographic area with its own cluster of data centers (e.g., <code>us-east-1</code>). Pick a Region for latency, compliance, or cost reasons.</li>
+          <li><b>Availability Zone (AZ)</b> — one or more discrete, physically separated data centers <i>within</i> a Region. Spreading resources across AZs is how you survive a single data-center failure.</li>
+          <li><b>Edge Location</b> — a smaller site (far more of these than Regions) used to cache content close to users for services like CloudFront.</li>
+        </ul>
+        <div class="hook"><b>Memory hook:</b> Region = where it lives, AZ = the redundancy inside that home, Edge = how fast it reaches you.</div>
+      </div>
+
+      <div class="note-card wide">
+        <h3>Popular services, grouped the way the exam groups them</h3>
+        <ul class="note-list two-col">
+          <li><b>Compute:</b> EC2 (virtual servers), Lambda (serverless functions), ECS/EKS (containers)</li>
+          <li><b>Storage:</b> S3 (object storage), EBS (block storage attached to an instance), Glacier (cold/archive storage)</li>
+          <li><b>Database:</b> RDS (managed relational), DynamoDB (NoSQL), Aurora (AWS's own MySQL/PostgreSQL-compatible engine)</li>
+          <li><b>Networking:</b> VPC (your private network), Route 53 (DNS), CloudFront (CDN)</li>
+          <li><b>Security &amp; Identity:</b> IAM (who can do what), Cognito (customer-facing auth), KMS (encryption key management)</li>
+          <li><b>Analytics:</b> Redshift (data warehouse), Athena (SQL directly on S3), QuickSight (dashboards)</li>
+          <li><b>Developer tools:</b> CodeCommit / CodeBuild / CodeDeploy — source, build, ship</li>
+          <li><b>Management:</b> CloudWatch (metrics/alarms), CloudTrail (who-did-what audit log), Config (configuration history/compliance)</li>
+          <li><b>AI/ML:</b> SageMaker (build models), Rekognition (image/video analysis), Lex (conversational bots)</li>
+          <li><b>Migration &amp; transfer:</b> Migration Hub (track a migration), Snowball (physical bulk transfer), DataSync (ongoing transfer)</li>
+        </ul>
+        <div class="hook">
+          <b>Memory hooks for the easily-confused pairs:</b>
+          <ul class="note-list">
+            <li><i>S3 vs EBS</i> — S3 holds objects accessed over a network from anywhere; EBS is a virtual disk bolted to one EC2 instance.</li>
+            <li><i>RDS vs DynamoDB</i> — RDS is SQL/relational with a schema; DynamoDB is NoSQL/key-value with a flexible schema.</li>
+            <li><i>CloudWatch vs CloudTrail vs Config</i> — Watch = metrics &amp; alarms, Trail = an audit log of API calls, Config = a timeline of resource configuration changes.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="note-card">
+        <h3>The Well-Architected Framework pillars</h3>
+        <p>Five lenses to sanity-check any architecture: <b>Operational Excellence, Security, Reliability, Performance Efficiency, Cost Optimization.</b></p>
+        <div class="hook"><b>Memory hook:</b> "OSR-PC" — run it as a checklist every time a question describes a design trade-off.</div>
+      </div>
+
+      <div class="note-card">
+        <h3>Free Tier, in one line</h3>
+        <p>New accounts get limited access to many services free for 12 months (plus some always-free service limits) — good for learning and low-traffic testing, not for production capacity planning.</p>
+      </div>
+
+      <div class="note-card wide">
+        <h3>General use cases the exam likes to test</h3>
+        <p>Hosting websites, backing up/storing data, building scalable apps, running analytics/reporting, training ML models, and IoT ingestion all show up as scenario setups. The trick is usually matching the scenario's <i>constraint</i> — cost? latency? compliance? durability? — to the service built for that constraint, not just recognizing the service name.</p>
+      </div>
+
+    </div>
+
+    <div class="footer-actions">
+      <button class="btn btn-ghost" id="btnNotesHome">← Back to home</button>
+    </div>
+  </section>
+
+</div>
+
+<script src="questions.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
