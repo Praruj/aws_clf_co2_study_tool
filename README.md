@@ -9,7 +9,7 @@ A self-contained, static mock-exam trainer built from a personal AWS CLF-C02 stu
 
 ## Features
 
-- **73 questions** parsed from raw study notes into a structured bank, covering services, pricing models, security, the Well-Architected Framework, and AWS CAF.
+- **276 questions** parsed from raw study notes into a structured bank, covering services, pricing models, security, the Well-Architected Framework, and AWS CAF.
 - **Three study modes**
   - **Timed Quiz** — pick a question count (10/20/30/all) and a time limit (10–45 min); auto-submits when time runs out.
   - **Instant Feedback** — untimed, one question at a time, with the correct answer and explanation revealed immediately after you answer.
@@ -112,7 +112,7 @@ Hosting websites, backing up/storing data, building scalable apps, running analy
 
 ## 機能
 
-- 生の学習ノートを構造化した**73問**の問題バンク。サービス、料金モデル、セキュリティ、Well-Architected フレームワーク、AWS CAF をカバー。
+- 生の学習ノートを構造化した**276問**の問題バンク。サービス、料金モデル、セキュリティ、Well-Architected フレームワーク、AWS CAF をカバー。
 - **3つの学習モード**
   - **タイム制クイズ** — 出題数（10/20/30/全問）と制限時間（10〜45分）を選択。時間切れで自動提出。
   - **即時フィードバック** — 時間制限なし、1問ずつ回答し、回答直後に正解と解説が表示される。
